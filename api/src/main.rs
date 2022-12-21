@@ -20,11 +20,11 @@ use token::{
 
 #[get("/")]
 async fn hello(req: HttpRequest) -> Result<impl Responder, MyError> {
-    let TokenData = match isLogin(req).await {
+    let token_data = match isLogin(req).await {
         Ok(token) => token,
-        Err(err) => return Err(MyError {name: "Invalid Token"})
+        Err(err) => return Err(err)
     };
-    println!("{:#?}", TokenData);
+    println!("{:#?}", token_data);
     Ok(HttpResponse::Ok().body("Hello world!"))
 }
 
@@ -43,7 +43,7 @@ async fn main() -> std::io::Result<()> {
         let conn = Connection::open("app.db").unwrap();
         conn.execute(
             "CREATE TABLE IF NOT EXISTS user (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id       INTEGER PRIMARY KEY AUTOINCREMENT,
                 username STRING UNIQUE NOT NULL,
                 password STRING NOT NULL
             )",
@@ -51,11 +51,46 @@ async fn main() -> std::io::Result<()> {
         ).unwrap();
         conn.execute(
             "CREATE TABLE IF NOT EXISTS tokenblocklist (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user INTEGER,
+                id    INTEGER PRIMARY KEY AUTOINCREMENT,
+                user  INTEGER,
                 token STRING,
-                uuid STRING,
-                exp INTEGER
+                uuid  STRING,
+                exp   INTEGER
+            )",
+            ()
+        ).unwrap();
+    
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS note (
+                id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id     INTEGER,
+                title       STRING,
+                description STRING,
+                body        STRING,
+                FOREIGN     KEY(user_id) REFERENCES user (id)
+            )",
+            ()
+        ).unwrap();
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS tag (
+                id      INTEGER PRIMARY KEY AUTOINCREMENT,
+                note_id INTEGER,
+                user_id INTEGER,
+                name    STRING,
+                color   STRING,
+                FOREIGN KEY(user_id) REFERENCES user (id),
+                FOREIGN KEY(note_id) REFERENCES note (id)
+            )",
+            ()
+        ).unwrap();
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS status (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                note_id INTEGER,
+                user_id INTEGER,
+                name    STRING,
+                FOREIGN KEY(user_id) REFERENCES user (id),
+                FOREIGN KEY(note_id) REFERENCES note (id)
             )",
             ()
         ).unwrap();
@@ -66,6 +101,22 @@ async fn main() -> std::io::Result<()> {
             .route("/token", web::post().to(create_token ) )
             .route("/token/refresh", web::get().to(refresh_token))
             .route("/token/logout", web::get().to(logout_user  ))
+            
+            .route("/note", web::get().to(manual_hello))
+            .route("/note", web::post().to(manual_hello))
+            .route("/note/{id}", web::delete().to(manual_hello))
+            .route("/note/{id}", web::post().to(manual_hello))
+            .route("/note/tag", web::get().to(manual_hello))
+            .route("/note/tag", web::post().to(manual_hello))
+            .route("/note/tag/{id}", web::delete().to(manual_hello))
+            .route("/note/{id}/tag/{tag_id}", web::post().to(manual_hello))
+            .route("/note/{id}/tag/{tag_id}", web::delete().to(manual_hello))
+            .route("/note/status", web::get().to(manual_hello))
+            .route("/note/status", web::post().to(manual_hello))
+            .route("/note/status/{id}", web::delete().to(manual_hello))
+            .route("/note/{id}/status/{status_id}", web::post().to(manual_hello))
+            .route("/note/{id}/status/{status_id}", web::delete().to(manual_hello))
+            
             .service(hello)
             .service(echo)
             .route("/hey", web::get().to(manual_hello))
