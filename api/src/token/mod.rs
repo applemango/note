@@ -1,14 +1,10 @@
 use actix_web::{
-    dev::*,
-    get, post, web, App, HttpServer, Responder, Result, error, HttpResponse, HttpRequest, Error
+    web, Responder, Result, HttpResponse, HttpRequest
 };
 use jwt_simple::prelude::*;
-use jwt_simple::claims::JWTClaims;
-use derive_more::{Display, Error};
 use serde::{Serialize, Deserialize};
 use rusqlite::Connection;
 use uuid::Uuid;
-use futures::{future, prelude::*};
 
 
 

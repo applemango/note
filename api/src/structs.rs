@@ -1,10 +1,7 @@
 #![allow(legacy_derive_helpers)]
-use actix_web::{get, post, web, App, HttpServer, Responder, Result, error, HttpResponse, HttpRequest};
-use jwt_simple::prelude::*;
+use actix_web::error;
 use derive_more::{Display, Error};
 use serde::{Serialize, Deserialize};
-use rusqlite::Connection;
-use uuid::Uuid;
 
 #[display(fmt = "my error: {}", name)]
 #[derive(Debug, Display, Error)]
@@ -35,4 +32,14 @@ pub struct TokenData {
     pub sub: i32,
     pub exp: u64,
     pub TokenClaims: TokenClaims,
+}
+
+#[derive(Serialize)]
+#[derive(Debug)]
+pub struct Note {
+    pub id: i32,
+    pub user_id: i32,
+    pub title: String,
+    pub description: String,
+    pub body: String
 }

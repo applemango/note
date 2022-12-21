@@ -1,13 +1,9 @@
 #![allow(legacy_derive_helpers)]
-use actix_web::{get, post, web, App, HttpServer, Responder, Result, error, HttpResponse, HttpRequest};
-use jwt_simple::prelude::*;
-use derive_more::{Display, Error};
-use serde::{Serialize, Deserialize};
+use actix_web::{get, post, web, App, HttpServer, Responder, Result, HttpResponse, HttpRequest};
 use rusqlite::Connection;
-use uuid::Uuid;
 
 mod structs;
-use structs::{User, MyError};
+use structs::MyError;
 
 mod token;
 use token::{
@@ -16,6 +12,14 @@ use token::{
     create_user,
     refresh_token,
     logout_user
+};
+
+mod note;
+use note::{
+    create_note,
+    get_note,
+    update_note,
+    delete_note
 };
 
 #[get("/")]
@@ -97,15 +101,15 @@ async fn main() -> std::io::Result<()> {
     }
     HttpServer::new(|| {
         App::new()
-            .route("/user", web::post().to(create_user  ))
-            .route("/token", web::post().to(create_token ) )
+            .route("/user", web::post().to(create_user))
+            .route("/token", web::post().to(create_token))
             .route("/token/refresh", web::get().to(refresh_token))
-            .route("/token/logout", web::get().to(logout_user  ))
+            .route("/token/logout", web::get().to(logout_user))
             
-            .route("/note", web::get().to(manual_hello))
-            .route("/note", web::post().to(manual_hello))
-            .route("/note/{id}", web::delete().to(manual_hello))
-            .route("/note/{id}", web::post().to(manual_hello))
+            .route("/note", web::get().to(get_note))
+            .route("/note", web::post().to(create_note))
+            .route("/note/{id}", web::delete().to(delete_note))
+            .route("/note/{id}", web::post().to(update_note))
             .route("/note/tag", web::get().to(manual_hello))
             .route("/note/tag", web::post().to(manual_hello))
             .route("/note/tag/{id}", web::delete().to(manual_hello))
