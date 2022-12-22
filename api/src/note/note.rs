@@ -1,9 +1,18 @@
 use actix_web::{web, Responder, Result, HttpResponse, HttpRequest};
 use rusqlite::Connection;
-use serde::{Serialize, Deserialize};
+use serde::Deserialize;
 
 pub use crate::structs::{MyError, Note};
 pub use crate::token::isLogin;
+
+#[derive(Deserialize)]
+pub struct UpdateNoteRequest {
+    pub title: String,
+    pub description: String,
+    pub body: String,
+    pub status: i32
+}
+
 
 pub async fn get_note(req: HttpRequest) -> Result<impl Responder, MyError> {
     let token_data = match isLogin(req).await {
@@ -34,6 +43,7 @@ pub async fn get_note(req: HttpRequest) -> Result<impl Responder, MyError> {
         SELECT
             id,
             user_id,
+            status_id,
             title,
             description,
             body
@@ -45,9 +55,10 @@ pub async fn get_note(req: HttpRequest) -> Result<impl Responder, MyError> {
         Ok(Note {
             id: row.get(0)?,
             user_id: row.get(1)?,
-            title: row.get(2)?,
-            description: row.get(3)?,
-            body: row.get(4)?
+            status_id: row.get(2)?,
+            title: row.get(3)?,
+            description: row.get(4)?,
+            body: row.get(5)?
         })
     }) {
         Ok(u) => u,
@@ -87,6 +98,7 @@ pub async fn create_note(req: HttpRequest) -> Result<impl Responder, MyError> {
         SELECT
             id,
             user_id,
+            status_id,
             title,
             description,
             body
@@ -94,9 +106,10 @@ pub async fn create_note(req: HttpRequest) -> Result<impl Responder, MyError> {
         Ok(Note {
             id: row.get(0)?,
             user_id: row.get(1)?,
-            title: row.get(2)?,
-            description: row.get(3)?,
-            body: row.get(4)?
+            status_id: row.get(2)?,
+            title: row.get(3)?,
+            description: row.get(4)?,
+            body: row.get(5)?
         })
     }) {
         Ok(u) => u,
@@ -106,13 +119,6 @@ pub async fn create_note(req: HttpRequest) -> Result<impl Responder, MyError> {
     };
     
     Ok(web::Json(result))
-}
-
-#[derive(Deserialize)]
-pub struct UpdateNoteRequest {
-    pub title: String,
-    pub description: String,
-    pub body: String
 }
 
 pub async fn update_note(path: web::Path<i32>, req: HttpRequest, body: web::Json<UpdateNoteRequest>) -> Result<impl Responder, MyError> {
@@ -125,8 +131,8 @@ pub async fn update_note(path: web::Path<i32>, req: HttpRequest, body: web::Json
         Err(_) => return Err(MyError {name: "db connection error"})
     };
 
-    let _ = match db_con.execute("UPDATE note SET title = ?1, description = ?2, body = ?3 WHERE id = ?4, user_id = ?5", [
-        &body.title, &body.description, &body.body, &path.to_string(), &token_data.sub.to_string()
+    let _ = match db_con.execute("UPDATE note SET title = ?1, description = ?2, body = ?3, status_id = ?4 WHERE id = ?5, user_id = ?6", [
+        &body.title, &body.description, &body.body, &body.status.to_string(), &path.to_string(), &token_data.sub.to_string()
     ]) {
         Ok(u) => u,
         Err(_) => {
@@ -138,6 +144,7 @@ pub async fn update_note(path: web::Path<i32>, req: HttpRequest, body: web::Json
         SELECT
             id,
             user_id,
+            status_id,
             title,
             description,
             body
@@ -145,9 +152,10 @@ pub async fn update_note(path: web::Path<i32>, req: HttpRequest, body: web::Json
         Ok(Note {
             id: row.get(0)?,
             user_id: row.get(1)?,
-            title: row.get(2)?,
-            description: row.get(3)?,
-            body: row.get(4)?
+            status_id: row.get(2)?,
+            title: row.get(3)?,
+            description: row.get(4)?,
+            body: row.get(5)?
         })
     }) {
         Ok(u) => u,

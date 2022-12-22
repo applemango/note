@@ -39,7 +39,34 @@ pub struct TokenData {
 pub struct Note {
     pub id: i32,
     pub user_id: i32,
+    pub status_id: i32,
     pub title: String,
     pub description: String,
     pub body: String
+}
+
+#[derive(Serialize)]
+#[derive(Debug)]
+pub struct NoteTag {
+    pub id: i32,
+    pub user_id: i32,
+    pub note_id: i32,
+    pub tag_id: i32,
+}
+
+#[derive(Serialize)]
+#[derive(Debug)]
+pub struct Tag {
+    pub id: i32,
+    pub user_id: i32,
+    pub name: String,
+    pub color: String
+}
+
+#[derive(Serialize)]
+#[derive(Debug)]
+pub struct Status {
+    pub id: i32,
+    pub user_id: i32,
+    pub name: String
 }

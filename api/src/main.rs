@@ -15,11 +15,27 @@ use token::{
 };
 
 mod note;
-use note::{
+use note::note:: {
     create_note,
     get_note,
     update_note,
     delete_note
+};
+use note::tag:: {
+    create_tag,
+    delete_tag,
+    get_tag,
+    add_tag,
+    remove_tag,
+    get_note_tag
+};
+use note::status:: {
+    create_status,
+    delete_status,
+    get_status,
+    //add_status,
+    //remove_status,
+    //get_note_status
 };
 
 #[get("/")]
@@ -68,6 +84,7 @@ async fn main() -> std::io::Result<()> {
             "CREATE TABLE IF NOT EXISTS note (
                 id          INTEGER PRIMARY KEY AUTOINCREMENT,
                 user_id     INTEGER,
+                status_id   INTEGER,
                 title       STRING,
                 description STRING,
                 body        STRING,
@@ -78,7 +95,6 @@ async fn main() -> std::io::Result<()> {
         conn.execute(
             "CREATE TABLE IF NOT EXISTS tag (
                 id      INTEGER PRIMARY KEY AUTOINCREMENT,
-                note_id INTEGER,
                 user_id INTEGER,
                 name    STRING,
                 color   STRING,
@@ -88,9 +104,20 @@ async fn main() -> std::io::Result<()> {
             ()
         ).unwrap();
         conn.execute(
+            "CREATE TABLE IF NOT EXISTS note_tag (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER,
+                note_id INTEGER,
+                tag_id INTEGER,
+                FOREIGN KEY(user_id) REFERENCES user (id),
+                FOREIGN KEY(note_id) REFERENCES note (id),
+                FOREIGN KEY(tag_id) REFERENCES tag (id)
+            )",
+            ()
+        ).unwrap();
+        conn.execute(
             "CREATE TABLE IF NOT EXISTS status (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                note_id INTEGER,
                 user_id INTEGER,
                 name    STRING,
                 FOREIGN KEY(user_id) REFERENCES user (id),
@@ -110,16 +137,20 @@ async fn main() -> std::io::Result<()> {
             .route("/note", web::post().to(create_note))
             .route("/note/{id}", web::delete().to(delete_note))
             .route("/note/{id}", web::post().to(update_note))
-            .route("/note/tag", web::get().to(manual_hello))
-            .route("/note/tag", web::post().to(manual_hello))
-            .route("/note/tag/{id}", web::delete().to(manual_hello))
-            .route("/note/{id}/tag/{tag_id}", web::post().to(manual_hello))
-            .route("/note/{id}/tag/{tag_id}", web::delete().to(manual_hello))
-            .route("/note/status", web::get().to(manual_hello))
-            .route("/note/status", web::post().to(manual_hello))
-            .route("/note/status/{id}", web::delete().to(manual_hello))
-            .route("/note/{id}/status/{status_id}", web::post().to(manual_hello))
-            .route("/note/{id}/status/{status_id}", web::delete().to(manual_hello))
+
+            .route("/note/tag", web::get().to(get_tag))
+            .route("/note/tag", web::post().to(create_tag))
+            .route("/note/tag/{id}", web::delete().to(delete_tag))
+            .route("/note/{id}/tag", web::get().to(get_note_tag))
+            .route("/note/{id}/tag/{tag_id}", web::post().to(add_tag))
+            .route("/note/{id}/tag/{tag_id}", web::delete().to(remove_tag))
+            
+            .route("/note/status", web::get().to(get_status))
+            .route("/note/status", web::post().to(create_status))
+            .route("/note/status/{id}", web::delete().to(delete_status))
+            //.route("/note/{id}/status", web::get().to(delete_status))
+            //.route("/note/{id}/status/{status_id}", web::post().to(add_status))
+            //.route("/note/{id}/status/{status_id}", web::delete().to(remove_status))
             
             .service(hello)
             .service(echo)
