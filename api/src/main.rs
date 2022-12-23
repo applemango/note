@@ -1,6 +1,7 @@
 #![allow(legacy_derive_helpers)]
-use actix_web::{get, post, web, App, HttpServer, Responder, Result, HttpResponse, HttpRequest};
+use actix_web::{get, post, web, App, HttpServer, Responder, Result, HttpResponse, HttpRequest, http};
 use rusqlite::Connection;
+use actix_cors::Cors;
 
 mod structs;
 use structs::MyError;
@@ -79,16 +80,13 @@ async fn main() -> std::io::Result<()> {
             )",
             ()
         ).unwrap();
-    
+
         conn.execute(
-            "CREATE TABLE IF NOT EXISTS note (
-                id          INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id     INTEGER,
-                status_id   INTEGER,
-                title       STRING,
-                description STRING,
-                body        STRING,
-                FOREIGN     KEY(user_id) REFERENCES user (id)
+            "CREATE TABLE IF NOT EXISTS status (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER,
+                name    STRING,
+                FOREIGN KEY(user_id) REFERENCES user (id)
             )",
             ()
         ).unwrap();
@@ -98,8 +96,21 @@ async fn main() -> std::io::Result<()> {
                 user_id INTEGER,
                 name    STRING,
                 color   STRING,
-                FOREIGN KEY(user_id) REFERENCES user (id),
-                FOREIGN KEY(note_id) REFERENCES note (id)
+                FOREIGN KEY(user_id) REFERENCES user (id)
+            )",
+            ()
+        ).unwrap();
+
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS note (
+                id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id     INTEGER,
+                status_id   INTEGER,
+                title       STRING,
+                description STRING,
+                body        STRING,
+                FOREIGN     KEY(user_id) REFERENCES user (id),
+                FOREIGN     KEY(status_id) REFERENCES status (id)
             )",
             ()
         ).unwrap();
@@ -115,19 +126,18 @@ async fn main() -> std::io::Result<()> {
             )",
             ()
         ).unwrap();
-        conn.execute(
-            "CREATE TABLE IF NOT EXISTS status (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER,
-                name    STRING,
-                FOREIGN KEY(user_id) REFERENCES user (id),
-                FOREIGN KEY(note_id) REFERENCES note (id)
-            )",
-            ()
-        ).unwrap();
     }
     HttpServer::new(|| {
+        let cors = Cors::default()
+            .send_wildcard()
+            .allow_any_origin()
+            .allow_any_method()
+            .allow_any_header();
+            //.allowed_methods(vec!["GET", "POST", "DELETE"])
+            //.allowed_headers(vec![http::header::AUTHORIZATION, http::header::ACCEPT])
+            //.allowed_header(http::header::CONTENT_TYPE);
         App::new()
+            .wrap(cors)
             .route("/user", web::post().to(create_user))
             .route("/token", web::post().to(create_token))
             .route("/token/refresh", web::get().to(refresh_token))

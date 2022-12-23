@@ -18,6 +18,8 @@ log = "0.4"
 
 futures = "0.1.29"
 
+actix-cors = "0.6.4"
+
 [dependencies.rusqlite]
 version = "*"
 features = ["bundled"]

@@ -30,7 +30,7 @@ pub async fn get_tag(req: HttpRequest) -> Result<impl Responder, MyError> {
         Ok(a) => a,
         Err(_) => return Err(MyError {name: "not found"})
     };
-    let all_item = match stmt.query_map([token_data.id], |row| {
+    let all_item = match stmt.query_map([token_data.sub], |row| {
         Ok(Tag {
             id: row.get(0)?,
             user_id: row.get(1)?,
@@ -66,7 +66,7 @@ pub async fn create_tag(req: HttpRequest, body: web::Json<CreateTagRequest>) -> 
         Ok(statement) => statement,
         Err(_) => return Err(MyError {name: "db statement error"})
     };
-    let _ = match statement.execute(&[&token_data.id, &body.name, &body.color]) {
+    let _ = match statement.execute(&[&token_data.sub.to_string(), &body.name, &body.color]) {
         Ok(result) => result,
         Err(_) => return Err(MyError {name: "db execute error"})
     };
@@ -127,11 +127,11 @@ pub async fn get_note_tag(path: web::Path<i32>, req: HttpRequest) -> Result<impl
             user_id,
             name,
             color
-        FROM tag WHERE user_id = ?1, note_id = ?1") {
+        FROM tag WHERE user_id = ?1 AND note_id = ?1") {
         Ok(a) => a,
         Err(_) => return Err(MyError {name: "not found"})
     };
-    let all_item = match stmt.query_map([token_data.id, path.to_string()], |row| {
+    let all_item = match stmt.query_map([token_data.sub.to_string(), path.to_string()], |row| {
         Ok(Tag {
             id: row.get(0)?,
             user_id: row.get(1)?,
@@ -168,7 +168,7 @@ pub async fn add_tag(req: HttpRequest) -> Result<impl Responder, MyError> {
         Ok(statement) => statement,
         Err(_) => return Err(MyError {name: "db statement error"})
     };
-    let _ = match statement.execute(&[&token_data.id, &id.to_string(), &tag_id.to_string()]) {
+    let _ = match statement.execute(&[&token_data.sub.to_string(), &id.to_string(), &tag_id.to_string()]) {
         Ok(result) => result,
         Err(_) => return Err(MyError {name: "db execute error"})
     };
@@ -206,7 +206,7 @@ pub async fn remove_tag(req: HttpRequest) -> Result<impl Responder, MyError> {
         Ok(connection) => connection,
         Err(_) => return Err(MyError {name: "db connection error"})
     };
-    let _ = match db_con.execute("DELETE note WHERE user_id = ?1, note_id = ?2, tag_id = ?3", &[&token_data.id, &id.to_string(), &tag_id.to_string()]) {
+    let _ = match db_con.execute("DELETE note WHERE user_id = ?1 AND note_id = ?2 AND tag_id = ?3", &[&token_data.sub.to_string(), &id.to_string(), &tag_id.to_string()]) {
         Ok(u) => u,
         Err(_) => {
             return Err(MyError {name: "not found"})

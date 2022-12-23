@@ -28,7 +28,7 @@ pub async fn get_status(req: HttpRequest) -> Result<impl Responder, MyError> {
         Ok(a) => a,
         Err(_) => return Err(MyError {name: "not found"})
     };
-    let all_item = match stmt.query_map([token_data.id], |row| {
+    let all_item = match stmt.query_map([token_data.sub], |row| {
         Ok(Status {
             id: row.get(0)?,
             user_id: row.get(1)?,
@@ -63,7 +63,7 @@ pub async fn create_status(req: HttpRequest, body: web::Json<CreateStatusRequest
         Ok(statement) => statement,
         Err(_) => return Err(MyError {name: "db statement error"})
     };
-    let _ = match statement.execute(&[&token_data.id, &body.name]) {
+    let _ = match statement.execute(&[&token_data.sub.to_string(), &body.name]) {
         Ok(result) => result,
         Err(_) => return Err(MyError {name: "db execute error"})
     };
