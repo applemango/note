@@ -2,7 +2,7 @@ use actix_web::{web, Responder, Result, HttpResponse, HttpRequest};
 use rusqlite::Connection;
 use serde::Deserialize;
 
-pub use crate::structs::{MyError, Note, Tag, Status};
+pub use crate::structs::{MyError, Note, Tag, Status, NoteTag};
 pub use crate::token::isLogin;
 
 #[derive(Deserialize)]
@@ -103,7 +103,7 @@ pub async fn delete_tag(path: web::Path<i32>, req: HttpRequest) -> Result<impl R
         Ok(connection) => connection,
         Err(_) => return Err(MyError {name: "db connection error"})
     };
-    let _ = match db_con.execute("DELETE tag WHERE id = ?1", [&path.to_string()]) {
+    let _ = match db_con.execute("DELETE FROM tag WHERE id = ?1", [&path.to_string()]) {
         Ok(u) => u,
         Err(_) => {
             return Err(MyError {name: "not found"})
@@ -164,6 +164,14 @@ pub async fn add_tag(req: HttpRequest) -> Result<impl Responder, MyError> {
         Ok(connection) => connection,
         Err(_) => return Err(MyError {name: "db connection error"})
     };
+
+    let _ = match db_con.query_row("SELECT id, user_id, name, color FROM note_tag WHERE user_id = ?1 AND note_id = ?2 AND tag_id = ?3", [token_data.sub, id, tag_id], |row| {
+        Ok(NoteTag {id: row.get(0)?,user_id: row.get(1)?,note_id: row.get(2)?,tag_id: row.get(3)?})
+    }) {
+        Ok(_) => Err(MyError {name: "dupe"}),
+        Err(_) => Ok(true)
+    };
+
     let mut statement = match db_con.prepare("INSERT INTO note_tag ( user_id, note_id, tag_id ) values ( ?1, ?2, ?3 )") {
         Ok(statement) => statement,
         Err(_) => return Err(MyError {name: "db statement error"})
@@ -172,28 +180,8 @@ pub async fn add_tag(req: HttpRequest) -> Result<impl Responder, MyError> {
         Ok(result) => result,
         Err(_) => return Err(MyError {name: "db execute error"})
     };
-
-    let result = match db_con.query_row("
-        SELECT
-            id,
-            user_id,
-            name,
-            color
-        FROM tag WHERE id = last_insert_rowid()", [], |row| {
-        Ok(Tag {
-            id: row.get(0)?,
-            user_id: row.get(1)?,
-            name: row.get(2)?,
-            color: row.get(3)?
-        })
-    }) {
-        Ok(u) => u,
-        Err(_) => {
-            return Err(MyError {name: "not found"})
-        }
-    };
     
-    Ok(web::Json(result))
+    Ok(HttpResponse::Ok().json("added"))
 }
 
 pub async fn remove_tag(req: HttpRequest) -> Result<impl Responder, MyError> {
@@ -206,7 +194,7 @@ pub async fn remove_tag(req: HttpRequest) -> Result<impl Responder, MyError> {
         Ok(connection) => connection,
         Err(_) => return Err(MyError {name: "db connection error"})
     };
-    let _ = match db_con.execute("DELETE note WHERE user_id = ?1 AND note_id = ?2 AND tag_id = ?3", &[&token_data.sub.to_string(), &id.to_string(), &tag_id.to_string()]) {
+    let _ = match db_con.execute("DELETE FROM note_tag WHERE user_id = ?1 AND note_id = ?2 AND tag_id = ?3", &[&token_data.sub.to_string(), &id.to_string(), &tag_id.to_string()]) {
         Ok(u) => u,
         Err(_) => {
             return Err(MyError {name: "not found"})

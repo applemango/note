@@ -98,7 +98,7 @@ pub async fn delete_status(path: web::Path<i32>, req: HttpRequest) -> Result<imp
         Ok(connection) => connection,
         Err(_) => return Err(MyError {name: "db connection error"})
     };
-    let _ = match db_con.execute("DELETE status WHERE id = ?1", [&path.to_string()]) {
+    let _ = match db_con.execute("DELETE FROM status WHERE id = ?1", [&path.to_string()]) {
         Ok(u) => u,
         Err(_) => {
             return Err(MyError {name: "not found"})
@@ -107,16 +107,31 @@ pub async fn delete_status(path: web::Path<i32>, req: HttpRequest) -> Result<imp
     Ok(HttpResponse::Ok().json("deleted"))
 }
 
-/*
-pub async fn get_note_status(path: web::Path<i32>, req: HttpRequest) -> Result<impl Responder, MyError> {
+/*pub async fn get_note_status(path: web::Path<i32>, req: HttpRequest) -> Result<impl Responder, MyError> {
 
+}*/
+pub async fn add_status(req: HttpRequest) -> Result<impl Responder, MyError> {
+    let (id, status_id): (i32, i32) = req.match_info().load().unwrap();
+    let token_data = match isLogin(req).await {
+        Ok(token) => token,
+        Err(err) => return Err(err)
+    };
+    let db_con = match Connection::open("app.db") {
+        Ok(connection) => connection,
+        Err(_) => return Err(MyError {name: "db connection error"})
+    };
+    let _ = match db_con.execute("UPDATE note SET status_id = ?1 WHERE id = ?2 AND user_id = ?3", [
+        status_id, id, token_data.sub
+    ]) {
+        Ok(u) => u,
+        Err(e) => {
+            print!("{}",e);
+            return Err(MyError {name: "not found"})
+        }
+    };
+    Ok(HttpResponse::Ok().json("changed"))
 }
 
-pub async fn add_status(path: web::Path<i32>, req: HttpRequest) -> Result<impl Responder, MyError> {
+/*pub async fn remove_status(path: web::Path<i32>, req: HttpRequest) -> Result<impl Responder, MyError> {
     
-}
-
-pub async fn remove_status(path: web::Path<i32>, req: HttpRequest) -> Result<impl Responder, MyError> {
-    
-}
-*/
+}*/

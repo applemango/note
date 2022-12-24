@@ -1,5 +1,5 @@
 #![allow(legacy_derive_helpers)]
-use actix_web::{get, post, web, App, HttpServer, Responder, Result, HttpResponse, HttpRequest, http};
+use actix_web::{get, post, web, App, HttpServer, Responder, Result, HttpResponse, HttpRequest};
 use rusqlite::Connection;
 use actix_cors::Cors;
 
@@ -34,7 +34,7 @@ use note::status:: {
     create_status,
     delete_status,
     get_status,
-    //add_status,
+    add_status,
     //remove_status,
     //get_note_status
 };
@@ -159,7 +159,7 @@ async fn main() -> std::io::Result<()> {
             .route("/note/status", web::post().to(create_status))
             .route("/note/status/{id}", web::delete().to(delete_status))
             //.route("/note/{id}/status", web::get().to(delete_status))
-            //.route("/note/{id}/status/{status_id}", web::post().to(add_status))
+            .route("/note/{id}/status/{status_id}", web::post().to(add_status))
             //.route("/note/{id}/status/{status_id}", web::delete().to(remove_status))
             
             .service(hello)

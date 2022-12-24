@@ -9,8 +9,7 @@ pub use crate::token::isLogin;
 pub struct UpdateNoteRequest {
     pub title: String,
     pub description: String,
-    pub body: String,
-    pub status: i32
+    pub body: String
 }
 
 #[derive(Serialize)]
@@ -105,7 +104,7 @@ pub async fn get_note(req: HttpRequest) -> Result<impl Responder, MyError> {
                         id,
                         user_id,
                         name
-                    FROM status WHERE id = ?1", [v.id], |row| {
+                    FROM status WHERE id = ?1", [v.status_id], |row| {
                     Ok(Status {
                         id: row.get(0)?,
                         user_id: row.get(1)?,
@@ -298,7 +297,7 @@ pub async fn delete_note(path: web::Path<i32>, req: HttpRequest) -> Result<impl 
         Ok(connection) => connection,
         Err(_) => return Err(MyError {name: "db connection error"})
     };
-    let _ = match db_con.execute("DELETE note WHERE id = ?1", [&path.to_string()]) {
+    let _ = match db_con.execute("DELETE FROM note WHERE id = ?1", [&path.to_string()]) {
         Ok(u) => u,
         Err(_) => {
             return Err(MyError {name: "not found"})
