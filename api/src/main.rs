@@ -149,14 +149,18 @@ async fn main() -> std::io::Result<()> {
             .route("/note/{id}", web::post().to(update_note))
 
             .route("/note/tag", web::get().to(get_tag))
-            .route("/note/tag", web::post().to(create_tag))
+            /*
+                When I set path to /note/tag, I get an error "can not parse "tag" to a i32", which I think is due to a conflict with another route.
+                Therefore, I changed the path to /note/tag/create this time.
+            */
+            .route("/note/tag/create", web::post().to(create_tag))
             .route("/note/tag/{id}", web::delete().to(delete_tag))
             .route("/note/{id}/tag", web::get().to(get_note_tag))
             .route("/note/{id}/tag/{tag_id}", web::post().to(add_tag))
             .route("/note/{id}/tag/{tag_id}", web::delete().to(remove_tag))
             
             .route("/note/status", web::get().to(get_status))
-            .route("/note/status", web::post().to(create_status))
+            .route("/note/status/create", web::post().to(create_status))
             .route("/note/status/{id}", web::delete().to(delete_status))
             //.route("/note/{id}/status", web::get().to(delete_status))
             .route("/note/{id}/status/{status_id}", web::post().to(add_status))

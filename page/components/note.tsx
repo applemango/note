@@ -60,7 +60,7 @@ const Infos = ({
         </div>
         <div style={{display: "flex"}}>
             <p className={styles.button} style={{margin: 0}}>Tags</p>
-            <TagSelector tags={tags} note={note} />
+            <TagSelector setTags={setTags} tags={tags} note={note} />
         </div>
         {/*{now==-1&&<div>
             <div className={stylesTable.status}>
@@ -115,6 +115,7 @@ const StatusSelector = ({
 }) => {
     const [now, setNow] = useState<Status>({id: -1, name: "Name", user_id: -1})
     const [open, setOpen] = useState(false)
+    const [openCreateStatus, setOpenCreateStatus] = useState(false)
     const ref = useRef(null)
     useEffect(()=> {
         if(note.status_id)
@@ -123,51 +124,74 @@ const StatusSelector = ({
     useClickAway(ref, ()=> {
         setOpen(false)
     })
-    return <div ref={ref} className={`${styles.StatusSelector} ${open && styles.open}`}>
-        <div className={styles.button} onClick={()=> setOpen(true)}>
-            <div>
-                <Status AllowChange={false} note={note} status={now}  />
+    return <>
+        <div ref={ref} className={`${styles.StatusSelector} ${open && styles.open}`}>
+            <div className={styles.button} onClick={()=> setOpen(true)}>
+                <div>
+                    <Status AllowChange={false} note={note} status={now}  />
+                </div>
             </div>
+            { open &&
+                <div className={styles.status}>
+                    {status.map((s: Status) => (
+                        <Status note={note} status={s}/>
+                    ))}
+                    <div style={{margin: "4px 0"}} className={styles.button} onClick={()=> {
+                        setOpenCreateStatus(true)
+                        setOpen(false)
+                    }} >
+                        <p>create</p>
+                    </div>
+                </div>
+            }
         </div>
-        { open &&
-            <div className={styles.status}>
-                {status.map((s: Status) => (
-                    <Status note={note} status={s}/>
-                ))}
-            </div>
-        }
-    </div>
+        <CreateStatus open={openCreateStatus} setOpen={setOpenCreateStatus} />
+    </>
 }
 
 const Tag = ({
+    setTags,
+    now,
+    setNow,
     tag,
     note,
     AllowChange = true
 }:{
+    setTags: Function
+    setNow: Function
     tag: NoteResponseTag
     note: NoteResponse
-    AllowChange?: boolean
+    AllowChange?: boolean,
+    now: Array<NoteResponseTag>
 }) => {
     return <div onClick={async () => {
-        if(note.tags.filter(t => t.id == tag.id).length) {
+        if(now.filter(t => t.id == tag.id).length) {
             const res = await deletes(getUrl(`/note/${note.id}/tag/${tag.id}`))
+            setNow((tags: Array<NoteResponseTag>):Array<NoteResponseTag> => {
+                const t = tags.concat().filter((t:NoteResponseTag) => t.id != tag.id)
+                return t
+            })
             return
         }
         const res = await post(getUrl(`/note/${note.id}/tag/${tag.id}`))
+        setNow((tags: Array<NoteResponseTag>) => [...tags, tag])
     }} style={{backgroundColor: tag.color}} className={stylesTable.tag}>
         <p>{tag.name}</p>
     </div>
 }
 
 const TagSelector = ({
+    setTags,
     tags,
     note
 }:{
+    setTags: Function
     tags: Array<Tag>
     note: NoteResponse
 }) => {
     const [now, setNow] = useState<Array<NoteResponseTag>>([])
     const [open, setOpen] = useState(false)
+    const [openCreateTag, setOpenCreateTag] = useState(false)
     const ref = useRef(null)
     useEffect(()=> {
         if(note.tags.length)
@@ -176,21 +200,79 @@ const TagSelector = ({
     useClickAway(ref, ()=> {
         setOpen(false)
     })
-    return <div ref={ref} className={`${styles.StatusSelector} ${open && styles.open}`}>
-        <div className={styles.button} onClick={()=> setOpen(true)}>
-            <div style={{display: "flex"}}>
-                {now.map((s: NoteResponseTag) => (
-                        <Tag note={note} tag={s}/>
-                    ))}
+    return <>
+        <div ref={ref} className={`${styles.StatusSelector} ${open && styles.open}`}>
+            <div className={styles.button} onClick={()=> setOpen(true)}>
+                <div style={{display: "flex"}}>
+                    {now.map((s: NoteResponseTag) => (
+                            <Tag now={now} setNow={setNow} setTags={setTags} note={note} tag={s}/>
+                        ))}
+                </div>
             </div>
+            { open &&
+                <div className={`${styles.status} ${styles._tags}`}>
+                    <div className={styles.tags}>
+                        {tags.map((s: Tag) => (
+                            <Tag now={now} setNow={setNow} setTags={setTags} note={note} tag={s}/>
+                        ))}
+                    </div>
+                    <div style={{margin: "4px 0"}} className={styles.button} onClick={()=> {
+                        setOpenCreateTag(true)
+                        setOpen(false)
+                    }} >
+                        <p>create</p>
+                    </div>
+                </div>
+            }
         </div>
-        { open &&
-            <div className={styles.status}>
-                {tags.map((s: Tag) => (
-                    <Tag note={note} tag={s}/>
-                ))}
-            </div>
-        }
+        <CreateTag open={openCreateTag} setOpen={setOpenCreateTag} />
+    </>
+}
+
+const CreateTag = ({
+    open,
+    setOpen
+}:{
+    open: boolean
+    setOpen: Function
+}) => {
+    const ref = useRef(null)
+    const [name, setName] = useState("")
+    const [color, setColor] = useState("#000000")
+    useClickAway(ref, ()=> {
+        setOpen(false)
+    })
+    return <div ref={ref} className={`${styles.createTagMenu} ${open && styles.open}`}>
+        <input type="text" placeholder="name" value={name} onChange={(e:any) => setName(e.target.value)} />
+        <input type="color" value={color} onChange={(e) => {setColor(e.target.value)}} />
+        <button onClick={async ()=> {
+            const res = await post(getUrl("/note/tag/create"), {
+                name: name,
+                color: color
+            })
+        }}>Create</button>
+    </div>
+}
+
+const CreateStatus = ({
+    open,
+    setOpen
+}:{
+    open: boolean
+    setOpen: Function
+}) => {
+    const [name, setName] = useState("")
+    const ref = useRef(null)
+    useClickAway(ref, ()=> {
+        setOpen(false)
+    })
+    return <div ref={ref} className={`${styles.createTagMenu} ${open && styles.open}`}>
+        <input type="text" placeholder="name" value={name} onChange={(e:any) => setName(e.target.value)} />
+        <button onClick={async ()=> {
+            const res = await post(getUrl("/note/status/create"), {
+                name: name
+            })
+        }}>Create</button>
     </div>
 }
 export default Note;
