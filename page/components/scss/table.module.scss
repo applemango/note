@@ -32,6 +32,16 @@
             width: 30%;
         }
         &:nth-child(4) {
+            justify-content: flex-end;
+            align-items: center;
+            svg {
+                stroke: #ddd;
+                transition: all .2s ease;
+                cursor: pointer;
+                &:hover {
+                    stroke: #666;
+                }
+            }
             width: 10%;
         }
     }

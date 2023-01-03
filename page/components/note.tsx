@@ -194,7 +194,7 @@ const TagSelector = ({
     const [openCreateTag, setOpenCreateTag] = useState(false)
     const ref = useRef(null)
     useEffect(()=> {
-        if(note.tags.length)
+        if(note.tags && note.tags.length)
             setNow([...note.tags])
     },[note])
     useClickAway(ref, ()=> {
