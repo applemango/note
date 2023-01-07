@@ -92,19 +92,21 @@ const Infos = ({
 const Status = ({
     status,
     note,
-    AllowChange = true
+    AllowChange = true,
+    onDelete
 }:{
     status: Status
     note: NoteResponse
     AllowChange?: boolean
+    onDelete?: Function
 }) => {
-    return <div onClick={async () => {
+    return <div className={stylesTable.status}>
+        <p onClick={async () => {
         if(status.id < 1 || !AllowChange)
             return
         const res = await post(getUrl(`/note/${note.id}/status/${status.id}`))
-    }} className={stylesTable.status}>
-        <p>{status.name}</p>
-        <IconDelete />
+    }}>{status.name}</p>
+        { onDelete && <IconDelete onClick={async (e: any) => await onDelete()}/>}
     </div>
 }
 
@@ -136,7 +138,9 @@ const StatusSelector = ({
             { open &&
                 <div className={styles.status}>
                     {status.map((s: Status) => (
-                        <Status note={note} status={s}/>
+                        <Status onDelete={async () => {
+                            const res = await deletes(getUrl(`/note/status/${s.id}`))
+                        }} note={note} status={s}/>
                     ))}
                     <div style={{margin: "4px 0"}} className={styles.button} onClick={()=> {
                         setOpenCreateStatus(true)
@@ -157,16 +161,19 @@ const Tag = ({
     setNow,
     tag,
     note,
-    AllowChange = true
+    AllowChange = true,
+    onDelete
 }:{
     setTags: Function
     setNow: Function
     tag: NoteResponseTag
     note: NoteResponse
     AllowChange?: boolean,
-    now: Array<NoteResponseTag>
+    now: Array<NoteResponseTag>,
+    onDelete?: Function
 }) => {
-    return <div onClick={async () => {
+    return <div style={{backgroundColor: tag.color}} className={stylesTable.tag}>
+        <p onClick={async () => {
         if(now.filter(t => t.id == tag.id).length) {
             const res = await deletes(getUrl(`/note/${note.id}/tag/${tag.id}`))
             setNow((tags: Array<NoteResponseTag>):Array<NoteResponseTag> => {
@@ -177,9 +184,8 @@ const Tag = ({
         }
         const res = await post(getUrl(`/note/${note.id}/tag/${tag.id}`))
         setNow((tags: Array<NoteResponseTag>) => [...tags, tag])
-    }} style={{backgroundColor: tag.color}} className={stylesTable.tag}>
-        <p>{tag.name}</p>
-        <IconDelete />
+    }} >{tag.name}</p>
+        { onDelete && <IconDelete onClick={async (e: any) => await onDelete()}/>}
     </div>
 }
 
@@ -216,7 +222,10 @@ const TagSelector = ({
                 <div className={`${styles.status} ${styles._tags}`}>
                     <div className={styles.tags}>
                         {tags.map((s: Tag) => (
-                            <Tag now={now} setNow={setNow} setTags={setTags} note={note} tag={s}/>
+                            <Tag onDelete={async() => {
+                                const res = await deletes(getUrl(`/note/tag/${s.id}`))
+                                setTags((tags: Array<Tag>) => tags.concat().filter((tag: Tag) => tag.id != s.id))
+                            }} now={now} setNow={setNow} setTags={setTags} note={note} tag={s}/>
                         ))}
                     </div>
                     <div style={{margin: "4px 0"}} className={styles.button} onClick={()=> {
