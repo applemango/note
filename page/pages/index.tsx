@@ -1,10 +1,11 @@
+import axios from "axios"
 import { useRouter } from "next/router"
 import { useEffect, useRef, useState } from "react"
 import useClickAway from "../components/hook/useClickAway"
 import Note from "../components/note"
 import Table from "../components/table"
 import { get, getUrl, post } from "../lib/main"
-import { isLogin } from "../lib/token"
+import { getToken, isLogin } from "../lib/token"
 import { NoteResponse } from "../lib/types/type"
 import styles from "./scss/index.module.scss"
 

@@ -74,7 +74,15 @@ export async function refresh() {
         return false
     }
     try {
-        const res = await post(getUrl("/token/refresh"))
+        //const res = await post(getUrl("/token/refresh"))
+        const res = await axios.post(
+            getUrl("/token/refresh"),{},{
+                headers: {
+                    "Content-Type": "application/json"
+                    ,'Authorization': 'Bearer '+getToken(true)
+                }
+            }
+        )
         localStorage.setItem("token", res.data.token)
         return {"msg":"success","code": res.status,"text": res.statusText,"data":res}
     } catch (error: any) {

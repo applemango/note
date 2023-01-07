@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { deletes, get, getUrl, post } from "../lib/main";
 import { NoteResponse, NoteResponseTag, Status, Tag } from "../lib/types/type";
 import useClickAway from "./hook/useClickAway";
+import { IconDelete } from "./icon";
 import styles from "./scss/note.module.scss"
 import stylesTable from "./scss/table.module.scss"
 
@@ -103,6 +104,7 @@ const Status = ({
         const res = await post(getUrl(`/note/${note.id}/status/${status.id}`))
     }} className={stylesTable.status}>
         <p>{status.name}</p>
+        <IconDelete />
     </div>
 }
 
@@ -177,6 +179,7 @@ const Tag = ({
         setNow((tags: Array<NoteResponseTag>) => [...tags, tag])
     }} style={{backgroundColor: tag.color}} className={stylesTable.tag}>
         <p>{tag.name}</p>
+        <IconDelete />
     </div>
 }
 

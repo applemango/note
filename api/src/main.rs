@@ -140,8 +140,8 @@ async fn main() -> std::io::Result<()> {
             .wrap(cors)
             .route("/user", web::post().to(create_user))
             .route("/token", web::post().to(create_token))
-            .route("/token/refresh", web::get().to(refresh_token))
-            .route("/token/logout", web::get().to(logout_user))
+            .route("/token/refresh", web::post().to(refresh_token))
+            .route("/token/logout", web::delete().to(logout_user))
             
             .route("/note", web::get().to(get_note))
             .route("/note", web::post().to(create_note))
