@@ -1,0 +1,29 @@
+._ {
+    display: flex;
+}
+.cards:not(:last-child) {
+    margin-right: 12px;
+}
+.cards {
+    min-width: 150px;
+}
+.card:first-child {
+    margin-bottom: 12px;
+}
+.card {
+    padding: 8px;
+    margin: 8px 0;
+    border-radius: 4px;
+    background-color: #fff;
+    border: 1px solid #eee;
+    > p {
+        color: #666;
+        font-size: 14px;
+        margin: 0;
+    }
+    > p.title {
+        color: #222;
+        font-size: 21px;
+        font-weight: 500;
+    }
+}

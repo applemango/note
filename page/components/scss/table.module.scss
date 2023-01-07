@@ -1,6 +1,8 @@
-.table {
+._ {
     width: 80%;
     margin: 48px auto;
+}
+.table {
     :is(.new.row, .top .column):hover {
         background-color: #f5f5f5;
         cursor: pointer;
