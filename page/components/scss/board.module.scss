@@ -31,6 +31,10 @@
     span.more {
         color: #111;
     }
+    transition: all .3s ease;
+    &:not(.top):hover {
+        background-color: #fafafa;
+    }
 }
 .card.top {
     display: flex;
