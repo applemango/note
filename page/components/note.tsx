@@ -63,29 +63,6 @@ const Infos = ({
             <p className={styles.button} style={{margin: 0}}>Tags</p>
             <TagSelector setTags={setTags} tags={tags} note={note} />
         </div>
-        {/*{now==-1&&<div>
-            <div className={stylesTable.status}>
-                <p>None</p>
-            </div>
-        </div>}
-        {status.map((status: Status, i:number) => (
-            <div onClick={async () => {
-                const res = await post(getUrl(`/note/${note.id}/status/${status.id}`))
-            }} className={stylesTable.status}>
-                <p>{status.name}</p>
-            </div>
-        ))}*/}
-        {/*tags.map((tag: Tag, i:number) => (
-            <div onClick={async ()=> {
-                if(note.tags.filter(t => t.id == tag.id).length) {
-                    const res = await deletes(getUrl(`/note/${note.id}/tag/${tag.id}`))
-                    return
-                }
-                const res = await post(getUrl(`/note/${note.id}/tag/${tag.id}`))
-            }} style={{backgroundColor: tag.color}} className={stylesTable.tag}>
-                <p>{tag.name}</p>
-            </div>
-        ))*/}
     </div>
 }
 
@@ -137,8 +114,8 @@ const StatusSelector = ({
             </div>
             { open &&
                 <div className={styles.status}>
-                    {status.map((s: Status) => (
-                        <Status onDelete={async () => {
+                    {status.map((s: Status, i:number) => (
+                        <Status key={i} onDelete={async () => {
                             const res = await deletes(getUrl(`/note/status/${s.id}`))
                         }} note={note} status={s}/>
                     ))}
@@ -213,16 +190,16 @@ const TagSelector = ({
         <div ref={ref} className={`${styles.StatusSelector} ${open && styles.open}`}>
             <div className={styles.button} onClick={()=> setOpen(true)}>
                 <div style={{display: "flex"}}>
-                    {now.map((s: NoteResponseTag) => (
-                            <Tag now={now} setNow={setNow} setTags={setTags} note={note} tag={s}/>
+                    {now.map((s: NoteResponseTag, i:number) => (
+                            <Tag key={i} now={now} setNow={setNow} setTags={setTags} note={note} tag={s}/>
                         ))}
                 </div>
             </div>
             { open &&
                 <div className={`${styles.status} ${styles._tags}`}>
                     <div className={styles.tags}>
-                        {tags.map((s: Tag) => (
-                            <Tag onDelete={async() => {
+                        {tags.map((s: Tag, i:number) => (
+                            <Tag key={i} onDelete={async() => {
                                 const res = await deletes(getUrl(`/note/tag/${s.id}`))
                                 setTags((tags: Array<Tag>) => tags.concat().filter((tag: Tag) => tag.id != s.id))
                             }} now={now} setNow={setNow} setTags={setTags} note={note} tag={s}/>

@@ -42,7 +42,7 @@ const TableLine = ({
         </div>
         <div className={styles.column}>
             {note.tags && note.tags.map((tag: NoteResponseTag, i:number) => (
-                <div style={{backgroundColor: tag.color}} className={styles.tag}>
+                <div key={i} style={{backgroundColor: tag.color}} className={styles.tag}>
                     <p>{tag.name}</p>
                 </div>
             ))}

@@ -19,9 +19,9 @@ const Board = ({
         setStatus([{id: -1, name: "none", user_id: -1},...await (await get(getUrl("/note/status"))).data])
     })()},[])
     return <div className={styles._}>
-        {status.map((s: Status, key: number) => {
+        {status.map((s: Status, i: number) => {
             const ns = notes.concat().filter((note: NoteResponse) => note.status_id == s.id)
-            return <div style={{width: `calc(100% / ${status.length} - ${key ? 12 : 0}px)`}} className={styles.cards}>
+            return <div key={i} style={{width: `calc(100% / ${status.length} - ${i ? 12 : 0}px)`}} className={styles.cards}>
                 <CardsTop setSelected={setSelected} setNotes={setNotes} notes={ns} status={s} />
                 <Cards setSelected={setSelected} notes={ns} setNotes={setNotes} />
             </div>
@@ -68,7 +68,7 @@ const Cards = ({
     setSelected: Function
 }) => {
     return <>
-    {notes.map((note: NoteResponse) => <Card onSelected={(note: any) => setSelected(note)}  setNotes={setNotes} note={note} />)}
+    {notes.map((note: NoteResponse, i: number) => <Card key={i} onSelected={(note: any) => setSelected(note)}  setNotes={setNotes} note={note} />)}
     </>
 }
 const Card = ({
@@ -85,7 +85,7 @@ const Card = ({
         <p>{`${note.body.slice(0,150)} `}{note.body.length>=150&&<span className={styles.more}>...read more</span>}</p>
         <div style={{display: "flex"}}>
             {note.tags && note.tags.map((tag: NoteResponseTag, i:number) => (
-                <div className={stylesT.tag} style={{backgroundColor: tag.color}}>
+                <div key={i} className={stylesT.tag} style={{backgroundColor: tag.color}}>
                     <p>{tag.name}</p>
                 </div>
             ))}
